@@ -34,11 +34,11 @@ endif
 
 $(NAME): configure-stamp $(OBJS)
 	@echo "Linking $@"
-	@$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
 main.o: main.c
 	@echo "Compiling $<"
-	@if [ -z "$(SYSCONFDIR)" ]; then \
+	if [ -z "$(SYSCONFDIR)" ]; then \
 		$(CC) $(CFLAGS) -c main.c -o $@; \
 	else \
 		$(CC) $(CFLAGS) -DSYSCONFDIR=\"$(SYSCONFDIR)\" -c main.c -o $@; \
@@ -46,14 +46,14 @@ main.o: main.c
 
 %.o: %.c
 	@echo "Compiling $<"
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 configure-stamp:
 	./configure
 
 win/resources.o: win/resources.rc
 	@echo Win32: adding ICON resource
-	@windres $^ -o $@
+	windres $^ -o $@
 
 install: $(NAME)
 	# Special handling for install(1)
@@ -115,22 +115,22 @@ win: win/setup.iss $(NAME) win/cntlm_manual.pdf win/cntlm.ini win/LICENSE.txt $(
 
 $(NAME)-$(VER)-win32.exe:
 	@echo Win32: preparing binaries for GUI installer
-	@cp $(patsubst %, /bin/%, $(CYGWIN_REQS)) win/
+	cp $(patsubst %, /bin/%, $(CYGWIN_REQS)) win/
 ifeq ($(DEBUG),1)
 	@echo Win32: copy DEBUG executable
-	@cp -p cntlm.exe win/
+	cp -p cntlm.exe win/
 else
 	@echo Win32: copy release executable
-	@strip -o win/cntlm.exe cntlm.exe
+	strip -o win/cntlm.exe cntlm.exe
 endif
 	@echo Win32: generating GUI installer
-	@win/Inno5/ISCC.exe /Q win/setup.iss #/Q win/setup.iss
+	win/Inno5/ISCC.exe /Q win/setup.iss #/Q win/setup.iss
 
 $(NAME)-$(VER)-win32.zip: 
 	@echo Win32: creating ZIP release for manual installs
-	@ln -s win $(NAME)-$(VER)
+	ln -s win $(NAME)-$(VER)
 	zip -9 $@ $(patsubst %, $(NAME)-$(VER)/%, cntlm.exe $(CYGWIN_REQS) cntlm.ini LICENSE.txt cntlm_manual.pdf) 
-	@rm -f $(NAME)-$(VER)
+	rm -f $(NAME)-$(VER)
 
 win/cntlm.ini: doc/cntlm.conf 
 	@cat doc/cntlm.conf | unix2dos > $@
@@ -140,8 +140,8 @@ win/LICENSE.txt: COPYRIGHT LICENSE
 
 win/cntlm_manual.pdf: doc/cntlm.1 
 	@echo Win32: generating PDF manual
-	@rm -f $@
-	@groff -t -e -mandoc -Tps doc/cntlm.1 | ps2pdf - $@
+	rm -f $@
+	groff -t -e -mandoc -Tps doc/cntlm.1 | ps2pdf - $@
 
 win/setup.iss: win/setup.iss.in
 ifeq ($(findstring CYGWIN,$(OS)),)
@@ -156,10 +156,10 @@ uninstall:
 	rm -f $(BINDIR)/$(NAME) $(MANDIR)/man1/$(NAME).1 2>/dev/null || true
 
 clean:
-	@rm -f config/endian config/gethostname config/strdup config/socklen_t config/*.exe
-	@rm -f *.o cntlm cntlm.exe configure-stamp build-stamp config/config.h
+	rm -f config/endian config/gethostname config/strdup config/socklen_t config/*.exe
+	rm -f *.o cntlm cntlm.exe configure-stamp build-stamp config/config.h
 	rm -f $(patsubst %, win/%, $(CYGWIN_REQS) cntlm.exe cntlm.ini LICENSE.txt setup.iss cntlm_manual.pdf)
-	@if [ -h Makefile ]; then rm -f Makefile; mv Makefile.gcc Makefile; fi
+	if [ -h Makefile ]; then rm -f Makefile; mv Makefile.gcc Makefile; fi
 
 distclean: clean
 ifeq ($(findstring CYGWIN,$(OS)),)
@@ -171,6 +171,6 @@ ifeq ($(findstring CYGWIN,$(OS)),)
 		fakeroot rpm/rules clean; \
 	fi
 endif
-	@rm -f *.exe *.deb *.rpm *.tgz *.tar.gz *.tar.bz2 *.zip *.exe tags ctags pid 2>/dev/null
+	rm -f *.exe *.deb *.rpm *.tgz *.tar.gz *.tar.bz2 *.zip *.exe tags ctags pid 2>/dev/null
 
 .PHONY: all install tgz tbz2 deb rpm win uninstall clean distclean

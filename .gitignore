@@ -1,0 +1,13 @@
+.project
+.cproject
+.settings
+.autotools
+cntlm.conf
+*.o
+cntlm
+config/config.h
+config/endian
+config/gethostname
+config/socklen_t
+config/strdup
+configure-stamp
