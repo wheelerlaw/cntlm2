@@ -417,6 +417,7 @@ rr_data_t direct_request(void *cdata, rr_data_t request) {
 				goto bailout;
 			}
 
+			// https://www.ietf.org/rfc/rfc2616 Section 8.2.3
 			int really = 0;
 			if (loop == 0 && hlist_subcmp(data[loop]->headers, "Expect", "100-continue") ) {
 //				int timeout_ms = 1000;
