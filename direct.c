@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <sys/socket.h>
+#include <time.h>
 
 extern int h_errno;
 
@@ -416,7 +417,35 @@ rr_data_t direct_request(void *cdata, rr_data_t request) {
 				goto bailout;
 			}
 
-			if (!http_body_send(*wsocket[loop], *rsocket[loop], data[0], data[1])) {
+			int really = 0;
+			if (loop == 0 && hlist_subcmp(data[loop]->headers, "Expect", "100-continue") ) {
+//				int timeout_ms = 1000;
+//				struct timeval current_time, start_time;
+//				gettimeofday(&start_time, NULL);
+//				gettimeofday(&current_time, NULL);
+//				while(current_time.tv_usec < start_time.tv_usec + timeout_ms * 100) {
+//
+//				}
+				rr_data_t exp100_response = new_rr_data();
+
+				// Set the timeout for waiting for the 100 CONTINUE status from the server
+				struct timeval tv;
+				tv.tv_sec = 1;
+				tv.tv_usec = 0;
+				setsockopt(*rsocket[loop+1], SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
+
+				// Try to receive the header
+				if(!headers_recv(*rsocket[loop+1], exp100_response)){
+					free_rr_data(request);
+				} else {
+					if (exp100_response->code == 100){
+						really = 1;
+					}
+				}
+			}
+
+
+			if (really && !http_body_send(*wsocket[loop], *rsocket[loop], data[0], data[1])) {
 				free_rr_data(data[0]);
 				free_rr_data(data[1]);
 				rc = (void *)-1;
